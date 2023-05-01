@@ -1,33 +1,47 @@
 package main
 
 import (
-	"net/http"
-	"net/http/pprof"
-
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
+
+	"github.com/tatsuyayamauchi/golang-echo-server-example/web/pkg/cmd/web/config"
 	"github.com/tatsuyayamauchi/golang-echo-server-example/web/pkg/handler"
+	"github.com/tatsuyayamauchi/golang-echo-server-example/web/pkg/middleware"
 )
 
 func main() {
+	c, err := config.NewConfig()
+	if err != nil {
+		log.Error(err)
+		panic(err)
+	}
 	// Create a new Echo instance
 	e := echo.New()
 
 	// Middleware
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
+	// TODO: どうにかする
+	for _, m := range middleware.RootMiddleware(c.Domain(), c.RequestTimeout()) {
+		e.Use(m)
+	}
 
 	// Routes
-	e.GET("/hello", handler.HelloHandler)
+	loginGroup := e.Group("/v1/login")
+	loginGroup.POST("", handler.LoginHandlerFunc(c.JwtExpiredHour(), c.JwtSecret()))
 
-	// pprof
-	pprofGroup := e.Group("/debug/pprof")
-	pprofGroup.Any("/cmdline", echo.WrapHandler(http.HandlerFunc(pprof.Cmdline)))
-	pprofGroup.Any("/profile", echo.WrapHandler(http.HandlerFunc(pprof.Profile)))
-	pprofGroup.Any("/symbol", echo.WrapHandler(http.HandlerFunc(pprof.Symbol)))
-	pprofGroup.Any("/trace", echo.WrapHandler(http.HandlerFunc(pprof.Trace)))
-	pprofGroup.Any("/*", echo.WrapHandler(http.HandlerFunc(pprof.Index)))
+	v1Group := e.Group("/v1")
+	v1Group.Use(middleware.JwtAuth(c.JwtSecret()))
+	v1Group.GET("/hello", handler.HelloHandlerFunc("v1/hello handler"))
+	v1Group.GET("/hello2", handler.HelloHandlerFunc("v1/hello2 handler"))
+
+	if c.IsEnableDebug() {
+		pprofGroup := e.Group("/debug/pprof")
+		for path, h := range handler.DebugHandlerFuncs() {
+			pprofGroup.Any(path, h)
+		}
+	}
 
 	// Start the server
-	e.Start(":8080")
+	if err := e.Start(":8080"); err != nil {
+		log.Error(err)
+	}
 }
