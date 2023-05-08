@@ -6,8 +6,14 @@ import (
 	"time"
 )
 
+const (
+	compressionLevel int   = 5
+	jwtExpiredHour   int32 = 72
+)
+
 type Config struct {
 	domain      string
+	port        string
 	enableDebug bool
 	reqTimeout  time.Duration
 	jwtSecret   string
@@ -25,6 +31,8 @@ func NewConfig() (*Config, error) {
 	if !ok {
 		return nil, fmt.Errorf("DOMAIN environment variable is not set")
 	}
+	port := getEnv("PORT", "8080")
+
 	jwtSecret, ok := os.LookupEnv("JWT_SECRET_KEY")
 	if !ok {
 		return nil, fmt.Errorf("JWT_SECRET_KEY environment variable is not set")
@@ -38,16 +46,20 @@ func NewConfig() (*Config, error) {
 
 	return &Config{
 		domain:      domain,
+		port:        port,
 		enableDebug: enableDebug,
 		reqTimeout:  reqTimeout,
 		jwtSecret:   jwtSecret,
 	}, nil
 }
 
+// 環境変数受け取り
 func (c *Config) Domain() string                { return c.domain }
+func (c *Config) Port() string                  { return c.port }
 func (c *Config) IsEnableDebug() bool           { return c.enableDebug }
 func (c *Config) RequestTimeout() time.Duration { return c.reqTimeout }
 func (c *Config) JwtSecret() string             { return c.jwtSecret }
 
-// TODO: 外から渡すか定数にするかを考える
-func (c *Config) JwtExpiredHour() int32 { return 72 }
+// ハードコート
+func (c *Config) CompressionLevel() int { return compressionLevel }
+func (c *Config) JwtExpiredHour() int32 { return jwtExpiredHour }
