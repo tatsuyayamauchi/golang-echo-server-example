@@ -1,8 +1,9 @@
-DOMAIN := localhost
 ENABLE_DEBUG := true
 
-# AES256
-JWT_SECRET_KEY := "02166ee6e7e830a70f0df089cffb2eff65db7f87c9156ba5e4a1c116f15f5c2e124577a3e2a49a37dd3c32f8b8970ff76b1e0b379f49994e0150a75d8153552e"
-
 run: ## run application
-	DOMAIN=$DOMAIN JWT_SECRET_KEY=$JWT_SECRET_KEY ENABLE_DEBUG=$ENABLE_DEBUG go run web/pkg/cmd/web/main.go
+	go run web/pkg/cmd/web/main.go \
+	  --debug
+
+
+show-flags: ## show application all flags
+	go run web/pkg/cmd/web/main.go --help

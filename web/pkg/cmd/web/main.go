@@ -7,11 +7,7 @@ import (
 )
 
 func main() {
-	c, err := config.NewConfig()
-	if err != nil {
-		log.Error(err)
-		panic(err)
-	}
+	c := config.NewConfig()
 	server := c.Build()
 
 	if err := server.StartHTTPServer(); err != nil {
