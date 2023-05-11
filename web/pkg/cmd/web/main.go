@@ -4,7 +4,6 @@ import (
 	"github.com/labstack/gommon/log"
 
 	"github.com/tatsuyayamauchi/golang-echo-server-example/web/pkg/cmd/web/config"
-	"github.com/tatsuyayamauchi/golang-echo-server-example/web/pkg/handler"
 )
 
 func main() {
@@ -13,9 +12,9 @@ func main() {
 		log.Error(err)
 		panic(err)
 	}
-	router := handler.NewRouter(c)
+	server := c.Build()
 
-	if err := router.StartHTTPServer(); err != nil {
+	if err := server.StartHTTPServer(); err != nil {
 		log.Error(err)
 	}
 }
