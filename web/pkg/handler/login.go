@@ -16,7 +16,7 @@ type jwtCustomClaims struct {
 	jwt.RegisteredClaims
 }
 
-func LoginHandlerFunc(jwtTimeoutHour int32, secretKey string) func(c echo.Context) error {
+func LoginHandlerFunc(jwtTimeoutHour int32, secretKey string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		username := c.FormValue("username")
 		password := c.FormValue("password")
